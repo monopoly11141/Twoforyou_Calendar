@@ -91,4 +91,11 @@ dependencies {
 
     //lifecycle
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0-rc01")
+
+    val date_time_version = "0.9.0"
+    implementation("io.github.vanpra.compose-material-dialogs:datetime:$date_time_version")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+
+    implementation("androidx.compose.material3:material3:1.1.2")
+    implementation("androidx.compose.material3:material3-window-size-class:1.1.2")
 }

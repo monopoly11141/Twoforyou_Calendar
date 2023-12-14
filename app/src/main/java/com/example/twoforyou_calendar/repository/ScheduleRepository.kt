@@ -11,6 +11,9 @@ class ScheduleRepository @Inject constructor(
     fun getSchedule() =
         scheduleDao.getSchedule()
 
+    fun getScheduleByDate(date : String) =
+        scheduleDao.getScheduleByDate(date)
+
     suspend fun insertSchedule(schedule: Schedule) =
         scheduleDao.insertSchedule(schedule)
 

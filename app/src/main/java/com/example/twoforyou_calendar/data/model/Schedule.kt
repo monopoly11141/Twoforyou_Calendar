@@ -8,5 +8,6 @@ data class Schedule(
     @PrimaryKey(autoGenerate = true)
     val key : Int,
     val date: String,
+    val time : String,
     val content: String = ""
 )
