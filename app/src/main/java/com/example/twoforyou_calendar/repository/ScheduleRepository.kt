@@ -25,5 +25,4 @@ class ScheduleRepository @Inject constructor(
 
     suspend fun deleteSchedule(schedule: Schedule) =
         scheduleDao.deleteSchedule(schedule)
-
 }

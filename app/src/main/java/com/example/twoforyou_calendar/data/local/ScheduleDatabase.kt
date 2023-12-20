@@ -6,7 +6,7 @@ import com.example.twoforyou_calendar.data.model.Schedule
 
 @Database(
     entities = [Schedule::class],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class ScheduleDatabase : RoomDatabase() {

@@ -7,7 +7,8 @@ import androidx.room.PrimaryKey
 data class Schedule(
     @PrimaryKey(autoGenerate = true)
     val key : Int,
-    val date: String,
-    val time : String,
-    val content: String = ""
+    var isDone : Boolean,
+    var date: String,
+    var time : String,
+    var content: String = ""
 )

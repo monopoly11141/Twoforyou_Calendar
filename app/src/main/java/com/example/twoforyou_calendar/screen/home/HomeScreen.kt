@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -37,6 +38,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import com.example.twoforyou_calendar.data.model.Schedule
 import java.time.LocalDateTime
@@ -132,6 +134,7 @@ fun HomeScreen(
                             onClick = {
                                 val schedule = Schedule(
                                     key = 0,
+                                    isDone = false,
                                     date = "${yearString.value}-${monthString.value}-${dayString.value}",
                                     time = "${timePickerState.hour}:${timePickerState.minute}",
                                     content = dialogContent
@@ -155,7 +158,10 @@ fun HomeScreen(
             //TODO : Change this format
             items(scheduleListByDate.size) {
                 val schedule = scheduleListByDate[it]
-                ScheduleBeautify(schedule)
+                ScheduleBeautify(
+                    schedule,
+                    viewModel
+                )
             }
         }
 
@@ -199,12 +205,30 @@ fun HorizontalCalendar(
 }
 
 @Composable
-fun ScheduleBeautify(schedule: Schedule) {
+fun ScheduleBeautify(
+    schedule: Schedule,
+    viewModel : HomeViewModel
+) {
     Row(
         horizontalArrangement = Arrangement.SpaceAround,
         modifier = Modifier
             .fillMaxWidth()
     ) {
+        Checkbox(
+            checked = schedule.isDone,
+            onCheckedChange = {
+                viewModel.updateSchedule(
+                    Schedule(
+                        key = schedule.key,
+                        isDone = !(schedule.isDone),
+                        date = schedule.date,
+                        time = schedule.time,
+                        content = schedule.content
+                    )
+                )
+            }
+        )
+
         Text(schedule.time)
 
         Text(schedule.content)
