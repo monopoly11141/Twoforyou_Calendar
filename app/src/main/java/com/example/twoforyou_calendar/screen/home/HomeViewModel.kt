@@ -65,4 +65,8 @@ class HomeViewModel @Inject constructor(
         repository.deleteSchedule(schedule)
     }
 
+    fun upsertSchedule(schedule: Schedule) = viewModelScope.launch {
+        repository.upsertSchedule(schedule)
+    }
+
 }

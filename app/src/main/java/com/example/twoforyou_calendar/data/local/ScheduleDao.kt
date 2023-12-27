@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import androidx.room.Upsert
 import com.example.twoforyou_calendar.data.model.Schedule
 import kotlinx.coroutines.flow.Flow
 
@@ -29,5 +30,8 @@ interface ScheduleDao {
 
     @Delete
     suspend fun deleteSchedule(schedule: Schedule)
+
+    @Upsert
+    suspend fun upsertSchedule(schedule: Schedule)
 
 }
