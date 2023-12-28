@@ -307,6 +307,7 @@ fun CalendarDialog(
                 ) {
                     Button(onClick = {
                         isAddSchedule.value = false
+                        isUpdateSchedule.value = false
                     }) {
                         Text("취소하기")
                     }
@@ -318,7 +319,7 @@ fun CalendarDialog(
                                     0,
                                     false,
                                     date.value,
-                                    "${timePickerState.hour}:${timePickerState.minute}",
+                                    formatTime(timePickerState.hour, timePickerState.minute),
                                     scheduleContent
                                 )
                             )
@@ -328,7 +329,7 @@ fun CalendarDialog(
                         }
                     } else {
                         Button(onClick = {
-                            schedule.value.time = "${timePickerState.hour}:${timePickerState.minute}"
+                            schedule.value.time = formatTime(timePickerState.hour, timePickerState.minute)
                             schedule.value.content = scheduleContent
                             schedule.value.date = date.value
                             viewModel.updateSchedule(
@@ -345,4 +346,8 @@ fun CalendarDialog(
         }
     }
 
+}
+
+fun formatTime(hour : Int, minute : Int) : String {
+    return "${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}"
 }
