@@ -61,19 +61,6 @@ fun HomeScreen(
 
     val isAddSchedule = remember { mutableStateOf(false) }
 
-    val isUpdateSchedule = remember { mutableStateOf(false) }
-
-    val schedule = remember {
-        mutableStateOf(
-            Schedule(
-                0,
-                isDone = false,
-                date = "",
-                time = ""
-            )
-        )
-    }
-
     var hour by remember { mutableIntStateOf(0) }
     var minute by remember { mutableIntStateOf(0) }
 
@@ -82,6 +69,17 @@ fun HomeScreen(
         initialMinute = minute,
         is24Hour = true
     )
+
+    if (isAddSchedule.value) {
+        CalendarDialog(
+            "add",
+            null,
+            isAddSchedule,
+            timePickerState,
+            date.value,
+            viewModel
+        )
+    }
 
     Column(
 
@@ -101,85 +99,93 @@ fun HomeScreen(
         ) {
             TodayDateText(date)
 
-            AddScheduleButton(isAddSchedule)
+            IconButton(onClick = {
+                isAddSchedule.value = true
+            }) {
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = "Add button"
+                )
+            }
         }
 
         ScheduleList(
-            schedule,
             scheduleListByDate,
-            isUpdateSchedule,
-            viewModel
-        )
-
-        //DeleteButton
-    }
-
-    if (isAddSchedule.value or isUpdateSchedule.value) {
-        CalendarDialog(
-            isAddSchedule,
-            isUpdateSchedule,
-            schedule,
             timePickerState,
-            date,
             viewModel
         )
+
     }
 
 
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScheduleList(
-    schedule: MutableState<Schedule>,
     scheduleListByDate: List<Schedule>,
-    isUpdateSchedule: MutableState<Boolean>,
+    timePickerState: TimePickerState,
     viewModel: HomeViewModel
 ) {
     LazyColumn() {
         //TODO : Change this format
         items(scheduleListByDate.size) {
-            schedule.value = scheduleListByDate[it]
             ScheduleItem(
-                schedule,
-                isUpdateSchedule,
+                scheduleListByDate[it],
+                timePickerState,
                 viewModel
             )
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScheduleItem(
-    schedule: MutableState<Schedule>,
-    isUpdateSchedule: MutableState<Boolean>,
+    schedule: Schedule,
+    timePickerState: TimePickerState,
     viewModel: HomeViewModel,
 ) {
+
+    var openUpdateCalendarDialog by remember { mutableStateOf(false) }
+    if (openUpdateCalendarDialog) {
+        CalendarDialog(
+            "update",
+            schedule,
+            null,
+            timePickerState,
+            schedule.date,
+            viewModel
+        )
+    }
+
     Row(
         horizontalArrangement = Arrangement.SpaceAround,
         modifier = Modifier
             .fillMaxWidth()
     ) {
         Checkbox(
-            checked = schedule.value.isDone,
+            checked = schedule.isDone,
             onCheckedChange = {
                 viewModel.updateSchedule(
                     Schedule(
-                        key = schedule.value.key,
-                        isDone = !(schedule.value.isDone),
-                        date = schedule.value.date,
-                        time = schedule.value.time,
-                        content = schedule.value.content
+                        key = schedule.key,
+                        isDone = !(schedule.isDone),
+                        date = schedule.date,
+                        time = schedule.time,
+                        content = schedule.content
                     )
                 )
             }
         )
 
-        Text(schedule.value.time)
+        Text(schedule.time)
 
-        Text(schedule.value.content)
+        Text(schedule.content)
 
         IconButton(onClick = {
-            isUpdateSchedule.value = true
+            //TODO : open edit schedule dialog
+            openUpdateCalendarDialog = true
         }) {
             Icon(
                 Icons.Filled.Edit,
@@ -188,7 +194,7 @@ fun ScheduleItem(
         }
 
         IconButton(onClick = {
-            viewModel.deleteSchedule(schedule.value)
+            viewModel.deleteSchedule(schedule)
         }) {
             Icon(
                 Icons.Filled.Clear,
@@ -231,123 +237,133 @@ fun TodayDateText(
     Text(text = date.value)
 }
 
-@Composable
-fun AddScheduleButton(
-    isAddSchedule: MutableState<Boolean>
-) {
-    IconButton(onClick = {
-        isAddSchedule.value = true
-    }) {
-        Icon(
-            imageVector = Icons.Filled.Add,
-            contentDescription = "Add button"
-        )
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalendarDialog(
-    isAddSchedule: MutableState<Boolean>,
-    isUpdateSchedule: MutableState<Boolean>,
-    schedule: MutableState<Schedule>,
+    isAddOrUpdateSchedule: String,
+    schedule: Schedule?,
+    isAddSchedule: MutableState<Boolean>?,
     timePickerState: TimePickerState,
-    date: MutableState<String>,
+    date: String,
     viewModel: HomeViewModel,
 ) {
-    var scheduleContent by remember { mutableStateOf(schedule.value.content) }
+    var scheduleContent by remember { mutableStateOf(schedule?.content ?: "") }
 
-    if (isAddSchedule.value or isUpdateSchedule.value) {
-        AlertDialog(
-            onDismissRequest = {
-                isAddSchedule.value = false
-                isUpdateSchedule.value = false
-            },
+    val closeDialog = remember { mutableStateOf(false) }
+    if (closeDialog.value) {
+        return
+    }
+
+    AlertDialog(
+        onDismissRequest = {
+            closeDialog.value = true
+        }
+    ) {
+        val configuration = LocalConfiguration.current
+        val screenHeight = configuration.screenHeightDp.dp
+        val screenWidth = configuration.screenWidthDp.dp
+        val scaleBy = 0.7f
+
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .size(width = screenWidth * scaleBy, height = screenHeight * scaleBy)
+                .requiredSize(width = screenWidth, height = screenHeight)
+                .scale(scaleBy)
         ) {
-            val configuration = LocalConfiguration.current
-            val screenHeight = configuration.screenHeightDp.dp
-            val screenWidth = configuration.screenWidthDp.dp
-
-            val scaleBy = 0.7f
-
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-                modifier = Modifier
-                    .size(width = screenWidth * scaleBy, height = screenHeight * scaleBy)
-                    .requiredSize(width = screenWidth, height = screenHeight)
-                    .scale(scaleBy)
-            ) {
-                if (isAddSchedule.value) {
+            when (isAddOrUpdateSchedule) {
+                "add" -> {
                     Text(text = "일정 추가")
-                } else {
+                }
+
+                "update" -> {
                     Text(text = "일정 수정")
                 }
 
-                TimePicker(
-                    state = timePickerState,
-                )
+                else -> {
 
-                TextField(
-                    value = scheduleContent,
-                    onValueChange = {
-                        scheduleContent = it
-                    },
-                    placeholder = {
-                        Text("일정")
-                    }
-                )
+                }
+            }
 
-                Spacer(modifier = Modifier.height(10.dp))
+            TimePicker(
+                state = timePickerState,
+            )
 
-                Row(
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                ) {
-                    Button(onClick = {
-                        isAddSchedule.value = false
-                        isUpdateSchedule.value = false
-                    }) {
-                        Text("취소하기")
-                    }
+            TextField(
+                value = scheduleContent,
+                onValueChange = {
+                    scheduleContent = it
+                },
+                placeholder = {
+                    Text("일정")
+                }
+            )
 
-                    if (isAddSchedule.value) {
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Row(
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                Button(onClick = {
+                    closeDialog.value = true
+                }) {
+                    Text("취소하기")
+                }
+
+                when (isAddOrUpdateSchedule) {
+                    "add" -> {
                         Button(onClick = {
                             viewModel.insertSchedule(
                                 Schedule(
                                     0,
                                     false,
-                                    date.value,
+                                    date,
                                     formatTime(timePickerState.hour, timePickerState.minute),
                                     scheduleContent
                                 )
                             )
-                            isAddSchedule.value = false
+
+                            isAddSchedule?.value = false
+                            closeDialog.value = true
                         }) {
                             Text("추가하기")
                         }
-                    } else {
+                    }
+
+                    "update" -> {
                         Button(onClick = {
-                            schedule.value.time = formatTime(timePickerState.hour, timePickerState.minute)
-                            schedule.value.content = scheduleContent
-                            schedule.value.date = date.value
+
                             viewModel.updateSchedule(
-                                schedule.value
+                                Schedule(
+                                    key = schedule!!.key,
+                                    isDone = schedule.isDone,
+                                    date = date,
+                                    time = formatTime(timePickerState.hour, timePickerState.minute),
+                                    content = scheduleContent
+                                )
                             )
-                            isUpdateSchedule.value = false
+
+                            closeDialog.value = true
                         }) {
                             Text("수정하기")
                         }
                     }
 
+                    else -> {
+
+                    }
                 }
+
             }
+
         }
     }
 
 }
 
-fun formatTime(hour : Int, minute : Int) : String {
+fun formatTime(hour: Int, minute: Int): String {
     return "${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}"
 }
