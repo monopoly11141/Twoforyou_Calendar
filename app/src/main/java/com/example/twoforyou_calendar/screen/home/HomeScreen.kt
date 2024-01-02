@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -44,8 +45,10 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.twoforyou_calendar.data.model.Schedule
+import com.example.twoforyou_calendar.ui.theme.mainColor
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,10 +56,11 @@ fun HomeScreen(
     navController: NavController,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
-    val scheduleListByDate = viewModel.scheduleListByDate.collectAsState().value
-
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     val todayDate = LocalDateTime.now().format(formatter)!!
+
+    val scheduleListByDate = viewModel.scheduleListByDate.collectAsState().value
+
 
     val date = remember { mutableStateOf(todayDate) }
 
@@ -83,7 +87,7 @@ fun HomeScreen(
     }
 
     Surface(
-
+        color = mainColor
     ) {
         Column(
 
@@ -99,7 +103,8 @@ fun HomeScreen(
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 TodayDateText(date)
 
@@ -133,7 +138,6 @@ fun ScheduleList(
     viewModel: HomeViewModel
 ) {
     LazyColumn() {
-        //TODO : Change this format
         items(scheduleListByDate.size) {
             ScheduleItem(
                 scheduleListByDate[it],
@@ -239,7 +243,12 @@ fun HorizontalCalendar(
 fun TodayDateText(
     date: MutableState<String>
 ) {
-    Text(text = date.value)
+    Text(
+        text = date.value,
+        modifier =
+        Modifier
+            .padding(10.dp)
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

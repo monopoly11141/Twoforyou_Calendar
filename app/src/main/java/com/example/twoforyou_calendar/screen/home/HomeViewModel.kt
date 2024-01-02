@@ -1,5 +1,7 @@
 package com.example.twoforyou_calendar.screen.home
 
+import android.content.ContentValues.TAG
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.twoforyou_calendar.data.model.Schedule
@@ -32,11 +34,19 @@ class HomeViewModel @Inject constructor(
                     _scheduleList.value = scheduleList
                 }
         }
+        viewModelScope.launch(Dispatchers.IO) {
+            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+            val currentDate = LocalDateTime.now().format(formatter)
+            Log.d(TAG, "HomeViewModel: ${currentDate}")
+            repository.getScheduleByDate(currentDate)
+                .collect { scheduleList ->
+                    Log.d(TAG, "HomeViewModel: ${scheduleList}")
+                    _scheduleListByDate.value = scheduleList
+                }
+        }
 
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-        val currentDate = LocalDateTime.now().format(formatter)
 
-        getScheduleByDate(currentDate)
+        //getScheduleByDate(currentDate)
 
     }
 
