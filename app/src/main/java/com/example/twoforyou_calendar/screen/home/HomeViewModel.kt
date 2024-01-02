@@ -1,7 +1,5 @@
 package com.example.twoforyou_calendar.screen.home
 
-import android.content.ContentValues.TAG
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.twoforyou_calendar.data.model.Schedule
@@ -29,35 +27,38 @@ class HomeViewModel @Inject constructor(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
+
             repository.getSchedule().distinctUntilChanged()
                 .collect { scheduleList ->
+
                     _scheduleList.value = scheduleList
+
                 }
+
+
         }
+
         viewModelScope.launch(Dispatchers.IO) {
             val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-            val currentDate = LocalDateTime.now().format(formatter)
-            Log.d(TAG, "HomeViewModel: ${currentDate}")
-            repository.getScheduleByDate(currentDate)
+            val todayDate = LocalDateTime.now().format(formatter)!!
+            repository.getScheduleByDate(todayDate).distinctUntilChanged()
                 .collect { scheduleList ->
-                    Log.d(TAG, "HomeViewModel: ${scheduleList}")
                     _scheduleListByDate.value = scheduleList
                 }
         }
-
-
-        //getScheduleByDate(currentDate)
 
     }
 
     fun getSchedule() = repository.getSchedule()
 
-    fun getScheduleByDate(date : String) = viewModelScope.launch(Dispatchers.IO) {
+    fun getScheduleByDate(date: String) = viewModelScope.launch(Dispatchers.IO) {
         repository.getScheduleByDate(date).distinctUntilChanged()
             .collect { scheduleList ->
                 _scheduleListByDate.value = scheduleList
             }
+
     }
+
 
     fun insertSchedule(schedule: Schedule) = viewModelScope.launch {
         repository.insertSchedule(schedule)

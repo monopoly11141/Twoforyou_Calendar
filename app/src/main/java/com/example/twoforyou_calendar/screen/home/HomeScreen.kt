@@ -1,6 +1,7 @@
 package com.example.twoforyou_calendar.screen.home
 
 import android.widget.CalendarView
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,12 +12,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -30,6 +34,7 @@ import androidx.compose.material3.TimePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -39,13 +44,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.twoforyou_calendar.data.model.Schedule
-import com.example.twoforyou_calendar.ui.theme.mainColor
+import com.example.twoforyou_calendar.ui.theme.DividerColor
+import com.example.twoforyou_calendar.ui.theme.MainColor
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -59,8 +66,7 @@ fun HomeScreen(
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     val todayDate = LocalDateTime.now().format(formatter)!!
 
-    val scheduleListByDate = viewModel.scheduleListByDate.collectAsState().value
-
+    val scheduleListByDate = viewModel.scheduleListByDate.collectAsState()
 
     val date = remember { mutableStateOf(todayDate) }
 
@@ -87,7 +93,7 @@ fun HomeScreen(
     }
 
     Surface(
-        color = mainColor
+        color = MainColor
     ) {
         Column(
 
@@ -98,7 +104,11 @@ fun HomeScreen(
                 viewModel
             )
 
-            Divider()
+            Divider(
+                modifier = Modifier
+                    .height(1.dp),
+                color = DividerColor
+            )
 
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -133,14 +143,17 @@ fun HomeScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScheduleList(
-    scheduleListByDate: List<Schedule>,
+    scheduleListByDate: State<List<Schedule>>,
     timePickerState: TimePickerState,
-    viewModel: HomeViewModel
+    viewModel: HomeViewModel,
 ) {
-    LazyColumn() {
-        items(scheduleListByDate.size) {
+    LazyColumn(
+
+    ) {
+
+        items(scheduleListByDate.value.size) {
             ScheduleItem(
-                scheduleListByDate[it],
+                scheduleListByDate.value[it],
                 timePickerState,
                 viewModel
             )
@@ -168,49 +181,82 @@ fun ScheduleItem(
         )
     }
 
-    Row(
-        horizontalArrangement = Arrangement.SpaceAround,
+    Card(
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 10.dp
+        ),
+        shape = RoundedCornerShape(10.dp),
         modifier = Modifier
-            .fillMaxWidth()
+            .padding(
+                horizontal = 5.dp,
+                vertical = 3.dp
+            ),
+        border = BorderStroke(1.dp, DividerColor),
+        colors = CardDefaults.cardColors(
+            containerColor = if (schedule.isDone) {
+                Color.Gray
+            } else {
+                Color.White
+            }
+        ),
     ) {
-        Checkbox(
-            checked = schedule.isDone,
-            onCheckedChange = {
-                viewModel.updateSchedule(
-                    Schedule(
-                        key = schedule.key,
-                        isDone = !(schedule.isDone),
-                        date = schedule.date,
-                        time = schedule.time,
-                        content = schedule.content
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Checkbox(
+                checked = schedule.isDone,
+                onCheckedChange = {
+                    viewModel.updateSchedule(
+                        Schedule(
+                            key = schedule.key,
+                            isDone = !(schedule.isDone),
+                            date = schedule.date,
+                            time = schedule.time,
+                            content = schedule.content
+                        )
                     )
+                },
+                modifier = Modifier
+                    .weight(0.2f)
+                    .padding(horizontal = 5.dp)
+            )
+
+            Text(
+                text = schedule.time,
+                modifier = Modifier
+                    .padding(horizontal = 5.dp)
+            )
+
+            Text(
+                text = schedule.content,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 5.dp)
+            )
+
+
+            IconButton(onClick = {
+                openUpdateCalendarDialog = true
+            }) {
+                Icon(
+                    Icons.Filled.Edit,
+                    "Edit Schedule"
                 )
             }
-        )
 
-        Text(schedule.time)
-
-        Text(schedule.content)
-
-        IconButton(onClick = {
-            //TODO : open edit schedule dialog
-            openUpdateCalendarDialog = true
-        }) {
-            Icon(
-                Icons.Filled.Edit,
-                "Edit Schedule"
-            )
-        }
-
-        IconButton(onClick = {
-            viewModel.deleteSchedule(schedule)
-        }) {
-            Icon(
-                Icons.Filled.Clear,
-                "Remove Schedule"
-            )
+            IconButton(onClick = {
+                viewModel.deleteSchedule(schedule)
+            }) {
+                Icon(
+                    Icons.Filled.Clear,
+                    "Remove Schedule"
+                )
+            }
         }
     }
+
 }
 
 @Composable
@@ -230,6 +276,10 @@ fun HorizontalCalendar(
             calendarView.setOnDateChangeListener { _, year, month, day ->
 
                 date.value = "$year-${(month + 1)}-$day"
+                val monthString = (month + 1).toString().padStart(2, '0')
+                val dayString = day.toString().padStart(2, '0')
+
+                date.value = "$year-$monthString-$dayString"
 
                 viewModel.getScheduleByDate(date.value)
             }
