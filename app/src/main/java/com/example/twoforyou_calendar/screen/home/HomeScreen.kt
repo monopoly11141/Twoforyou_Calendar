@@ -63,8 +63,8 @@ fun HomeScreen(
     navController: NavController,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
-    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-    val todayDate = LocalDateTime.now().format(formatter)!!
+    val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    val todayDate = LocalDateTime.now().format(dateFormatter)!!
 
     val scheduleListByDate = viewModel.scheduleListByDate.collectAsState()
 
@@ -150,7 +150,6 @@ fun ScheduleList(
     LazyColumn(
 
     ) {
-
         items(scheduleListByDate.value.size) {
             ScheduleItem(
                 scheduleListByDate.value[it],

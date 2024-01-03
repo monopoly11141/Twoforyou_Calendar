@@ -27,15 +27,10 @@ class HomeViewModel @Inject constructor(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-
             repository.getSchedule().distinctUntilChanged()
                 .collect { scheduleList ->
-
                     _scheduleList.value = scheduleList
-
                 }
-
-
         }
 
         viewModelScope.launch(Dispatchers.IO) {
@@ -49,7 +44,12 @@ class HomeViewModel @Inject constructor(
 
     }
 
-    fun getSchedule() = repository.getSchedule()
+    fun getSchedule() =  viewModelScope.launch(Dispatchers.IO) {
+        repository.getSchedule().distinctUntilChanged()
+            .collect { scheduleList ->
+                _scheduleList.value = scheduleList
+            }
+    }
 
     fun getScheduleByDate(date: String) = viewModelScope.launch(Dispatchers.IO) {
         repository.getScheduleByDate(date).distinctUntilChanged()
@@ -58,7 +58,6 @@ class HomeViewModel @Inject constructor(
             }
 
     }
-
 
     fun insertSchedule(schedule: Schedule) = viewModelScope.launch {
         repository.insertSchedule(schedule)
@@ -75,9 +74,4 @@ class HomeViewModel @Inject constructor(
     fun deleteSchedule(schedule: Schedule) = viewModelScope.launch {
         repository.deleteSchedule(schedule)
     }
-
-    fun upsertSchedule(schedule: Schedule) = viewModelScope.launch {
-        repository.upsertSchedule(schedule)
-    }
-
 }

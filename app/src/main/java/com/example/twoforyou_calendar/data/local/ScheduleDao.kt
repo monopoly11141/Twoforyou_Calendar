@@ -30,8 +30,4 @@ interface ScheduleDao {
 
     @Delete
     suspend fun deleteSchedule(schedule: Schedule)
-
-    @Upsert
-    suspend fun upsertSchedule(schedule: Schedule)
-
 }
